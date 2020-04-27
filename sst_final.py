@@ -14,8 +14,13 @@ class settings:
     pass
 kb = None
 
+# SubjectInformation() gets subject information
+# Input: data entered to the dialogue
+# Output: subject information stored in subdata
+
 def SubjectInformation():
     
+    # Make a GUI dialogue to receive sub data
     dataDlg = gui.Dlg(title = "Subject data")
     dataDlg.addText('For subject ID, change the last two digits only!')
     dataDlg.addField('Subject ID (three digit):', 100)
@@ -23,15 +28,18 @@ def SubjectInformation():
     dataDlg.addField('Gender:', choices=["Male", "Female"])
     dataDlg.addField('Race:', choices=["Caucasian", "African-American", "Asian", "Hispinic", "Native-American"])
     
-    
+    # define a flag to use in a while loop
     vflag=True
     
+    # Check the entered information
     while vflag:
         IDflag = False
         AGEflag = False
         
         subdata = dataDlg.show()
         
+        # Sub ID should be an integer with 3 digits and should be less than 200
+        # Example correct inputs: 101, 120 (last two digits are sub ID)
         if isinstance(subdata[0], int) and len(str(subdata[0])) ==3 and subdata[0]<200 and subdata[0]>100:
             IDflag = True
         else: 
@@ -41,6 +49,7 @@ def SubjectInformation():
             errorDlg.show()
             continue
             
+        # Subject age should be an two-digit integer bigger than 18
         if isinstance(subdata[1], int) and len(str(subdata[1])) ==2 and subdata[1]>=18:
             AGEflag = True
         else: 
@@ -50,11 +59,12 @@ def SubjectInformation():
             continue
              
         
+        # If sub ID and age are correctly entered, exit the while loop
         if IDflag==True and AGEflag==True:
             vflag=False
             
     
-    
+    # Show winodw informing that the sub data are correctly registered
     ConfirmDlg = gui.Dlg()
     ConfirmDlg.addText('Subject information succesfully registered!')
     ConfirmDlg.show()
@@ -62,17 +72,19 @@ def SubjectInformation():
     subdata[0] = str(subdata[0])
     subdata[1] = str(subdata[1])
     
-    
+    # return subdata
     return(subdata)
 
-
+# This function initialize the necessary things. 
+# Input: subdata, it uses sub ID to generate different logfile name that includes sub ID
+# Output: loads all visual stimuli (arrows); defines experimental parameters (settings); and initilize kb
 def Initialize(subdata):
     global win # Declare win as global variable!
     global settings
     global kb
     
-    #win = visual.Window([1680,1050], monitor="testMonitor", units="deg", screen=1, color = 'white', fullscr=True)
-    win = visual.Window([1680,1050], monitor="testMonitor", units="deg", screen=1, color = 'white')
+    win = visual.Window([1680,1050], monitor="testMonitor", units="deg", screen=1, color = 'white', fullscr=True)
+    #win = visual.Window([1680,1050], monitor="testMonitor", units="deg", screen=1, color = 'white')
     #win.setMouseVisible(False)
     settings.TotalBlocks = 5 # How many blocks?
     settings.TotalTrials = 300 # How many total trials?
@@ -109,7 +121,9 @@ def Initialize(subdata):
     kb = keyboard.Keyboard()
     
 
-
+# This function generates trial sequence
+# Input: get experimental paramaters included in settings.Larrow
+# Output: returns trialseq that includes randomized trial sequence
 
 def GenSequence(settings):
     global win
@@ -189,10 +203,11 @@ def GenSequence(settings):
         
     return(trialseq)
 
-
+# This function generates instruction screen
 def ShowInstructions():
     global window 
     
+    # define instruction contents
     ins = visual.TextStim(win, height=.6, wrapWidth=25, color = 'black',pos=[0,0])
     ins.text ='You will perform a stop signal task. \n'
     ins.text += 'Press q to left arrow and p to right arrow as fast as possible! \n'
@@ -201,10 +216,13 @@ def ShowInstructions():
     ins.text += 'Making fast responses and stopping are equally important! \n'
     ins.text += 'Press any key to continue'
     
+    # display until any inputs
     while not event.getKeys():
         ins.draw()
         win.flip()
     
+
+# This function displays count down from 3 - 1 seconds
 
 def CountDown():
     global window
@@ -226,6 +244,9 @@ def CountDown():
     win.flip()
     core.wait(.5)
 
+# This function runs experiment according to data stored in trialseq
+# Input: experimental parameters (settings), trial sequence (trialseq), and subdata
+# Output: Runs experiment
 
 def RunTask(settings, trialseq, subdata):
     global window
@@ -454,32 +475,29 @@ def RunTask(settings, trialseq, subdata):
                 BlockFeedback.draw()
                 win.flip()
             
-            
-            PerformanceFeedack = visual.TextStim(win, height=.6, wrapWidth=25, color = 'black',pos=[0,0])
-            if SuccesfulStop/STOPtrials <= .4:
-                PerformanceFeedack.text = "Your are doing great in terms of making fast responses."
-                PerformanceFeedack.text += "However, you are not stopping accurately."
-                PerformanceFeedack.text += "Please concentrate more on stopping on the next block!"
-                PerformanceFeedack.text += "Thanks."
-                
-            elif SuccesfulStop/STOPtrials >= .6:
-                PerformanceFeedack.text = "Your are doing great in terms of stopping."
-                PerformanceFeedack.text += "However, your response time is too slow."
-                PerformanceFeedack.text += "Please concentrate more on making fast responses on the next block!"
-                PerformanceFeedack.text += "Thanks."
-            else:
-                PerformanceFeedack.text = "Your are doing great!" 
-                PerformanceFeedack.text += "Keep doing what you've been doing!."
-            
-            
-            # Present performance feedback
-            while not event.getKeys():
-                PerformanceFeedack.draw()
-                win.flip()
-                
-            
+            # Displays different performance feedback contingent on stopping performance
             if trialseq.blocknum[i] < 5:
-                # Reset blockdata class
+                PerformanceFeedack = visual.TextStim(win, height=.6, wrapWidth=25, color = 'black',pos=[0,0])
+                if SuccesfulStop/STOPtrials <= .45:
+                    PerformanceFeedack.text = "Your are doing great in terms of making fast responses. \n"
+                    PerformanceFeedack.text += "However, you are not stopping accurately. \n"
+                    PerformanceFeedack.text += "Please concentrate more on stopping on the next block! \n"
+                    PerformanceFeedack.text += "Thanks."
+                    
+                elif SuccesfulStop/STOPtrials >= .55:
+                    PerformanceFeedack.text = "Your are doing great in terms of stopping. \n"
+                    PerformanceFeedack.text += "However, your response time is too slow. \n"
+                    PerformanceFeedack.text += "Please concentrate more on making fast responses on the next block! \n"
+                    PerformanceFeedack.text += "Thanks."
+                else:
+                    PerformanceFeedack.text = "Your are doing great! \n" 
+                    PerformanceFeedack.text += "Keep doing what you've been doing!"
+                # Present performance feedback
+                while not event.getKeys():
+                    PerformanceFeedack.draw()
+                    win.flip()
+                    
+                # Reset block-wise data if current block is not the last one
                 blockdata.arrow = []
                 blockdata.resp = []
                 blockdata.LeftSSD = []
@@ -491,9 +509,12 @@ def RunTask(settings, trialseq, subdata):
                 
                 # Count down begins again 
                 CountDown()
-        
+            
+            
+            
 
 
+# After completion of the last block, close everything!
 def TerminateTask():
     global widow
     
@@ -510,9 +531,9 @@ def TerminateTask():
 
 subdata=SubjectInformation()
 Initialize(subdata)
-#ShowInstructions()
-#CountDown()
+ShowInstructions()
+CountDown()
 trialseq=GenSequence(settings)
 print(trialseq.stop)
-#RunTask(settings, trialseq, subdata)
-#TerminateTask()
+RunTask(settings, trialseq, subdata)
+TerminateTask()
